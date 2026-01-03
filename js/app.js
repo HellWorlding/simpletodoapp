@@ -12,6 +12,28 @@ function loadTodos() {
     todos = stored ? JSON.parse(stored) : [];
 }
 
+// 다크 모드
+function loadTheme() {
+    const theme = localStorage.getItem('theme');
+    if (theme === 'dark') {
+        document.body.classList.add('dark');
+        updateThemeIcon();
+    }
+}
+
+function toggleTheme() {
+    document.body.classList.toggle('dark');
+    const isDark = document.body.classList.contains('dark');
+    localStorage.setItem('theme', isDark ? 'dark' : 'light');
+    updateThemeIcon();
+}
+
+function updateThemeIcon() {
+    const btn = document.getElementById('theme-toggle');
+    const isDark = document.body.classList.contains('dark');
+    btn.textContent = isDark ? '☀️' : '🌙';
+}
+
 // 필터 함수
 function setFilter(category) {
     currentFilter = category;
@@ -124,6 +146,49 @@ function toggleTodo(id) {
     }
 }
 
+function editTodo(id, newTitle) {
+    const todo = todos.find(todo => todo.id === id);
+    if (todo && newTitle.trim()) {
+        todo.title = newTitle.trim();
+        saveTodos();
+        renderTodos();
+    } else {
+        renderTodos();
+    }
+}
+
+// 수정 모드
+function startEdit(titleSpan, id) {
+    const currentTitle = titleSpan.textContent;
+    const li = titleSpan.closest('.todo-item');
+
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.className = 'edit-input';
+    input.value = currentTitle;
+
+    titleSpan.replaceWith(input);
+    input.focus();
+    input.select();
+
+    function finishEdit() {
+        editTodo(id, input.value);
+    }
+
+    input.addEventListener('blur', finishEdit);
+    input.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+            input.blur();
+        }
+    });
+    input.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            input.value = currentTitle;
+            input.blur();
+        }
+    });
+}
+
 // 렌더링
 function renderTodos() {
     const todoList = document.getElementById('todo-list');
@@ -148,7 +213,7 @@ function renderTodos() {
             li.innerHTML = `
                 <input type="checkbox" ${todo.completed ? 'checked' : ''} data-id="${todo.id}">
                 <span class="category-label">${todo.category || '일반'}</span>
-                <span>${todo.title}</span>
+                <span class="todo-title" data-id="${todo.id}">${todo.title}</span>
                 <button class="delete-btn" data-id="${todo.id}">삭제</button>
             `;
             todoList.appendChild(li);
@@ -166,13 +231,18 @@ document.addEventListener('DOMContentLoaded', () => {
     const categorySelect = document.getElementById('category-select');
     const todoList = document.getElementById('todo-list');
     const filterSection = document.querySelector('.filter-section');
+    const themeToggle = document.getElementById('theme-toggle');
 
     // 초기 로드
+    loadTheme();
     loadTodos();
     renderTodos();
 
     // 초기 포커스
     todoInput.focus();
+
+    // 다크 모드 토글
+    themeToggle.addEventListener('click', toggleTheme);
 
     // 폼 submit으로 추가
     todoForm.addEventListener('submit', (e) => {
@@ -193,7 +263,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // 체크박스 토글 및 삭제
+    // 체크박스 토글, 삭제, 수정
     todoList.addEventListener('click', (e) => {
         const id = parseInt(e.target.dataset.id);
 
@@ -203,6 +273,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (e.target.classList.contains('delete-btn')) {
             deleteTodo(id, e.target);
+        }
+    });
+
+    // 더블클릭으로 수정
+    todoList.addEventListener('dblclick', (e) => {
+        if (e.target.classList.contains('todo-title')) {
+            const id = parseInt(e.target.dataset.id);
+            startEdit(e.target, id);
         }
     });
 });
