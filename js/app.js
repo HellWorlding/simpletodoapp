@@ -95,7 +95,21 @@ function addTodo(title, category) {
     renderTodos();
 }
 
-function deleteTodo(id) {
+function deleteTodo(id, element) {
+    // 애니메이션 클래스 추가
+    if (element) {
+        const li = element.closest('.todo-item');
+        if (li) {
+            li.classList.add('removing');
+            setTimeout(() => {
+                todos = todos.filter(todo => todo.id !== id);
+                saveTodos();
+                renderTodos();
+            }, 300);
+            return;
+        }
+    }
+    // 폴백: 애니메이션 없이 삭제
     todos = todos.filter(todo => todo.id !== id);
     saveTodos();
     renderTodos();
@@ -117,7 +131,16 @@ function renderTodos() {
     todoList.innerHTML = '';
 
     if (filteredTodos.length === 0) {
-        todoList.innerHTML = '<li class="empty-message">할 일이 없습니다. 새로운 할 일을 추가해보세요!</li>';
+        const emptyHtml = currentFilter === 'all' && todos.length === 0
+            ? `<li class="empty-message">
+                <span class="empty-icon">📝</span>
+                <span class="empty-text">할 일을 추가해보세요!</span>
+               </li>`
+            : `<li class="empty-message">
+                <span class="empty-icon">🔍</span>
+                <span class="empty-text">해당 카테고리에 할 일이 없습니다</span>
+               </li>`;
+        todoList.innerHTML = emptyHtml;
     } else {
         filteredTodos.forEach(todo => {
             const li = document.createElement('li');
@@ -148,6 +171,9 @@ document.addEventListener('DOMContentLoaded', () => {
     loadTodos();
     renderTodos();
 
+    // 초기 포커스
+    todoInput.focus();
+
     // 폼 submit으로 추가
     todoForm.addEventListener('submit', (e) => {
         e.preventDefault();
@@ -156,6 +182,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (title) {
             addTodo(title, category);
             todoInput.value = '';
+            todoInput.focus();
         }
     });
 
@@ -175,7 +202,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         if (e.target.classList.contains('delete-btn')) {
-            deleteTodo(id);
+            deleteTodo(id, e.target);
         }
     });
 });
