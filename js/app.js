@@ -28,10 +28,57 @@ function setFilter(category) {
 }
 
 function getFilteredTodos() {
-    if (currentFilter === 'all') {
-        return todos;
+    let filtered = currentFilter === 'all'
+        ? [...todos]
+        : todos.filter(todo => todo.category === currentFilter);
+
+    // 정렬: 미완료 먼저, 같은 상태 내에서는 최신순
+    filtered.sort((a, b) => {
+        if (a.completed !== b.completed) {
+            return a.completed ? 1 : -1;
+        }
+        return new Date(b.createdAt) - new Date(a.createdAt);
+    });
+
+    return filtered;
+}
+
+// 대시보드 업데이트
+function updateDashboard() {
+    const progressText = document.getElementById('progress-text');
+    const progressFill = document.getElementById('progress-fill');
+    const categoryStats = document.getElementById('category-stats');
+
+    const total = todos.length;
+    const completed = todos.filter(t => t.completed).length;
+    const percentage = total > 0 ? Math.round((completed / total) * 100) : 0;
+
+    // 특수 상태 처리
+    if (total === 0) {
+        progressText.textContent = '할 일을 추가해보세요 ✏️';
+        progressFill.style.width = '0%';
+        progressFill.classList.remove('complete');
+    } else if (completed === total) {
+        progressText.textContent = '🎉 오늘 할 일 완료!';
+        progressFill.style.width = '100%';
+        progressFill.classList.add('complete');
+    } else {
+        progressText.textContent = `${completed}/${total} 완료 (${percentage}%)`;
+        progressFill.style.width = `${percentage}%`;
+        progressFill.classList.remove('complete');
     }
-    return todos.filter(todo => todo.category === currentFilter);
+
+    // 카테고리별 통계
+    const categories = ['일반', '업무', '개인', '쇼핑'];
+    const statsHtml = categories.map(cat => {
+        const catTodos = todos.filter(t => t.category === cat);
+        const catCompleted = catTodos.filter(t => t.completed).length;
+        const catTotal = catTodos.length;
+        if (catTotal === 0) return '';
+        return `<span class="stat-item">${cat}: ${catCompleted}/${catTotal}</span>`;
+    }).filter(s => s).join('');
+
+    categoryStats.innerHTML = statsHtml;
 }
 
 // CRUD 함수
@@ -71,20 +118,22 @@ function renderTodos() {
 
     if (filteredTodos.length === 0) {
         todoList.innerHTML = '<li class="empty-message">할 일이 없습니다. 새로운 할 일을 추가해보세요!</li>';
-        return;
+    } else {
+        filteredTodos.forEach(todo => {
+            const li = document.createElement('li');
+            li.className = `todo-item ${todo.completed ? 'completed' : ''}`;
+            li.innerHTML = `
+                <input type="checkbox" ${todo.completed ? 'checked' : ''} data-id="${todo.id}">
+                <span class="category-label">${todo.category || '일반'}</span>
+                <span>${todo.title}</span>
+                <button class="delete-btn" data-id="${todo.id}">삭제</button>
+            `;
+            todoList.appendChild(li);
+        });
     }
 
-    filteredTodos.forEach(todo => {
-        const li = document.createElement('li');
-        li.className = `todo-item ${todo.completed ? 'completed' : ''}`;
-        li.innerHTML = `
-            <input type="checkbox" ${todo.completed ? 'checked' : ''} data-id="${todo.id}">
-            <span class="category-label">${todo.category || '일반'}</span>
-            <span>${todo.title}</span>
-            <button class="delete-btn" data-id="${todo.id}">삭제</button>
-        `;
-        todoList.appendChild(li);
-    });
+    // 대시보드 업데이트
+    updateDashboard();
 }
 
 // 이벤트

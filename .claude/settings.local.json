@@ -5,7 +5,10 @@
       "Bash(git init:*)",
       "Bash(git add:*)",
       "Bash(git commit -m \"$\\(cat <<''EOF''\nInitial commit: Todo App 프로젝트 초기 설정\n\n- HTML/CSS/JS 기본 구조 생성\n- 할 일 추가/삭제/완료 기능 구현\n- 로컬 스토리지 저장 기능 추가\n- README.md 및 .gitignore 설정\n\n🤖 Generated with [Claude Code]\\(https://claude.com/claude-code\\)\n\nCo-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>\nEOF\n\\)\")",
-      "Bash(git remote add:*)"
+      "Bash(git remote add:*)",
+      "Bash(git commit -m \"$\\(cat <<''EOF''\nfeat: 카테고리 필터 기능 추가\n\n- 카테고리 드롭다운 추가 \\(일반, 업무, 개인, 쇼핑\\)\n- 필터 버튼으로 카테고리별 할 일 필터링\n- 각 항목에 카테고리 라벨 표시\n- currentFilter, setFilter, getFilteredTodos 함수 구현\n\n🤖 Generated with [Claude Code]\\(https://claude.com/claude-code\\)\n\nCo-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>\nEOF\n\\)\")",
+      "Bash(git push:*)",
+      "Bash(git commit:*)"
     ]
   }
 }
